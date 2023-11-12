@@ -27,18 +27,18 @@ public class FaceWord {
             /*String toParse = vertexIndexString.contains(COMMENT_TOKEN) ?
                     vertexIndexString.split(COMMENT_TOKEN)[0] :
                     vertexIndexString;*/
-            String toParse = faceWord.trimComment(vertexIndexString, 0);
+            //String toParse = faceWord.trimComment(vertexIndexString, 0);
             /*if () {
                 faceWord.vertexIndex = Integer.parseInt();
                 //String vertexIndexStringSplitted = vertexIndexString.split(COMMENT_TOKEN)[0];
             } else {
                 faceWord.vertexIndex = Integer.parseInt()
             }*/
-            faceWord.vertexIndex = Integer.parseInt(toParse) - 1;
+            faceWord.vertexIndex = Integer.parseInt(vertexIndexString) - 1;
         }
         if (indices.length > 1) {
             String textureVertexIndexString = indices[1];
-            String toParse = faceWord.trimComment(textureVertexIndexString, 1);
+            //String toParse = faceWord.trimComment(textureVertexIndexString, 1);
 
             /*if (toParse.isEmpty() || faceWord.commentIndex < 1) {
                 faceWord.textureVertexIndex = null;
@@ -46,14 +46,14 @@ public class FaceWord {
                 faceWord.textureVertexIndex = Integer.parseInt(toParse);
             }*/
 
-            if (!toParse.isEmpty() && faceWord.commentIndex >= 1) {
-                faceWord.textureVertexIndex = Integer.parseInt(toParse) - 1;
+            if (!textureVertexIndexString.isEmpty()) {
+                faceWord.textureVertexIndex = Integer.parseInt(textureVertexIndexString) - 1;
             }
             //faceWord.textureVertexIndex = toParse.isEmpty() ? null : Integer.parseInt(toParse);
         }
         if (indices.length > 2) {
             String normalIndexString = indices[2];
-            String toParse = faceWord.trimComment(normalIndexString, 2);
+            //String toParse = faceWord.trimComment(normalIndexString, 2);
 
             /*if (toParse.isEmpty() || faceWord.commentIndex < 2) {
                 faceWord.normalIndex = null;
@@ -61,8 +61,8 @@ public class FaceWord {
                 faceWord.normalIndex = Integer.parseInt(toParse);
             }*/
 
-            if (!toParse.isEmpty() && faceWord.commentIndex >= 2) {
-                faceWord.normalIndex = Integer.parseInt(toParse) - 1;
+            if (!normalIndexString.isEmpty()) {
+                faceWord.normalIndex = Integer.parseInt(normalIndexString) - 1;
             }
         }
 
@@ -133,5 +133,21 @@ public class FaceWord {
         if (normalIndex != null && normalIndex >= normalsSize) {
             throw new ObjReaderException("Normal index ot of bounds", lineIndex);
         }
+    }
+
+    public int getCommentIndex() {
+        return commentIndex;
+    }
+
+    public Integer getVertexIndex() {
+        return vertexIndex;
+    }
+
+    public Integer getTextureVertexIndex() {
+        return textureVertexIndex;
+    }
+
+    public Integer getNormalIndex() {
+        return normalIndex;
     }
 }
