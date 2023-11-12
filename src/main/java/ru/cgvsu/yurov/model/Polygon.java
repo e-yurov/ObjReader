@@ -15,6 +15,10 @@ public class Polygon {
         normalIndices = new ArrayList<>();
     }
 
+    public boolean hasTexture() {
+        return !textureVertexIndices.isEmpty();
+    }
+
     public void setVertexIndices(ArrayList<Integer> vertexIndices) {
         assert vertexIndices.size() >= 3;
         this.vertexIndices = vertexIndices;

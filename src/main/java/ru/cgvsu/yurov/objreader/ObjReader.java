@@ -9,7 +9,10 @@ import ru.cgvsu.yurov.objreader.exceptions.ArgumentsSizeException;
 import ru.cgvsu.yurov.objreader.exceptions.ObjReaderException;
 import ru.cgvsu.yurov.objreader.exceptions.ParsingException;
 
-import java.text.ParseException;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 public class ObjReader {
@@ -20,7 +23,7 @@ public class ObjReader {
 	private static final String OBJ_FACE_TOKEN = "f";
 	private static final String COMMENT_TOKEN = "#";
 
-	public static Model read(String fileContent) {
+	public static Model readOld(String fileContent) {
 		Model result = new Model();
 
 		int lineIndex = 0;
@@ -52,11 +55,83 @@ public class ObjReader {
 				case OBJ_TEXTURE_TOKEN -> result.textureVertices.add(parseTextureVertex(wordsInLine, lineIndex));
 				case OBJ_NORMAL_TOKEN -> result.normals.add(parseNormal(wordsInLine, lineIndex));
 				case OBJ_FACE_TOKEN -> result.polygons.add(parseFace(wordsInLine, lineIndex));
-				default -> {}
+				case COMMENT_TOKEN -> {}
+				default -> throw new ParsingException(lineIndex);
 			}
 		}
 
 		return result;
+	}
+
+	private Model model = new Model();
+	private int lineIndex = 0;
+
+	public static Model read(File file) {
+		String content;
+		try {
+			content = Files.readString(Path.of(file.getAbsolutePath()));
+		} catch (IOException exception) {
+			throw new RuntimeException(exception);
+		}
+		return read(content);
+	}
+
+	public static Model read(String content) {
+		ObjReader objReader = new ObjReader();
+		objReader.read3(content);
+		return objReader.model;
+	}
+
+	private Model read3(String fileContent) {
+		//int lineIndex = 0;
+		Scanner scanner = new Scanner(fileContent);
+		scanner.useLocale(Locale.ROOT);
+		while (scanner.hasNextLine()) {
+			String line = scanner.nextLine();
+
+			int commentIndex = line.indexOf(COMMENT_TOKEN);
+			if (commentIndex > -1) {
+				line = line.substring(0, commentIndex);
+			}
+
+			if (line.isBlank()) {
+				continue;
+			}
+			ArrayList<String> wordsInLine = new ArrayList<>(Arrays.asList(line.split("\\s+")));
+			/*if (wordsInLine.isEmpty()) {
+				continue;
+			}*/
+
+			final String token = wordsInLine.get(0);
+			wordsInLine.remove(0);
+
+			lineIndex++;
+			switch (token) {
+				case OBJ_VERTEX_TOKEN -> model.addVertex(parseVertex(wordsInLine, lineIndex));
+						//result.vertices.add(parseVertex(wordsInLine, lineIndex));
+				case OBJ_TEXTURE_TOKEN -> model.addTextureVertex(parseTextureVertex(wordsInLine, lineIndex));
+						//result.textureVertices.add(parseTextureVertex(wordsInLine, lineIndex));
+				case OBJ_NORMAL_TOKEN -> model.addNormal(parseNormal(wordsInLine, lineIndex));
+						//result.normals.add(parseNormal(wordsInLine, lineIndex));
+				case OBJ_FACE_TOKEN -> {
+					//model.addPolygon(parseFace(wordsInLine, lineIndex));
+					Polygon polygon = parseFace(wordsInLine, lineIndex);
+
+					if (!model.polygons.isEmpty()) {
+						Polygon firstPolygon = model.getFirstPolygon();
+						if (polygon.hasTexture() != firstPolygon.hasTexture()) {
+							throw new ObjReaderException("Texture mismatch", lineIndex);
+						}
+					}
+				}
+						//result.polygons.add(parseFace(wordsInLine, lineIndex));
+				case COMMENT_TOKEN -> {}
+				default -> throw new ParsingException(lineIndex);
+			}
+		}
+
+		return null;
+		//return result;
 	}
 
 	// Всем методам кроме основного я поставил модификатор доступа protected, чтобы обращаться к ним в тестах
@@ -159,6 +234,31 @@ public class ObjReader {
 		}
 	}
 
+	protected void parseFace2(final ArrayList<String> wordsInLineWithoutToken, int lineInd) {
+		List<FaceWord> faceWords = new ArrayList<>();
+		Set<WordType> types = new HashSet<>();
+		for (String s : wordsInLineWithoutToken) {
+			FaceWord faceWord = parseFaceWord2(s, lineInd);
+			faceWord.checkIndices(model.getVerticesSize(), model.getTextureVerticesSize(),
+					model.getNormalsSize(), lineIndex);
+
+			types.add(faceWord.getWordType());
+			faceWords.add(faceWord);
+		}
+
+		if (faceWords.size() < 3) {
+			throw new ArgumentsSizeException(ArgumentsErrorType.FEW, lineInd);
+		}
+		if (types.size() > 1) {
+			throw new ObjReaderException("Face words type mismatch", lineInd);
+		}
+	}
+
+	protected static FaceWord parseFaceWord2(String word, int lineIndex) {
+		FaceWord faceWord = FaceWord.parse(word, lineIndex);
+		return faceWord;
+	}
+
 	private static void checkSize(ArrayList<String> wordsInLineWithoutToken, int vectorSize, int lineInd) {
 		int wordCount = wordsInLineWithoutToken.size();
 
@@ -170,9 +270,9 @@ public class ObjReader {
 			throw new ArgumentsSizeException(ArgumentsErrorType.FEW, lineInd);
 		}
 
-		if (wordsInLineWithoutToken.get(vectorSize).equals(COMMENT_TOKEN)) {
+		/*if (wordsInLineWithoutToken.get(vectorSize).equals(COMMENT_TOKEN)) {
 			return;
-		}
+		}*/
 		throw new ArgumentsSizeException(ArgumentsErrorType.MANY, lineInd);
 	}
 }
