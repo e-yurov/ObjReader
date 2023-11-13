@@ -112,7 +112,7 @@ public class ObjReader {
 					format.parse(wordsInLineWithoutToken.get(1)).floatValue());
 
 		} catch (ParseException e) {
-			throw new ParsingException(lineIndex);
+			throw new ParsingException("float", lineIndex);
 		}
 	}
 
@@ -125,7 +125,7 @@ public class ObjReader {
 					format.parse(wordsInLineWithoutToken.get(2)).floatValue());
 
 		} catch (ParseException e) {
-			throw new ParsingException(lineIndex);
+			throw new ParsingException("float", lineIndex);
 		}
 	}
 

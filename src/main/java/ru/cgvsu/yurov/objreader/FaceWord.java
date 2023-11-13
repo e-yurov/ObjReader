@@ -14,27 +14,39 @@ public class FaceWord {
 
         String[] indices = word.split("/");
         if (indices.length == 0) {
-            throw new ArgumentsSizeException(ArgumentsErrorType.FEW, lineIndex);
+            throw new ArgumentsSizeException(ArgumentsErrorType.FEW_IN_WORD, lineIndex);
         }
 
         String vertexIndexString = indices[0];
-        faceWord.vertexIndex = Integer.parseInt(vertexIndexString) - 1;
+        try {
+            faceWord.vertexIndex = Integer.parseInt(vertexIndexString) - 1;
+        } catch (NumberFormatException exception) {
+            throw new ParsingException("integer", lineIndex);
+        }
 
         if (indices.length > 1) {
             String textureVertexIndexString = indices[1];
             if (!textureVertexIndexString.isEmpty()) {
-                faceWord.textureVertexIndex = Integer.parseInt(textureVertexIndexString) - 1;
+                try {
+                    faceWord.textureVertexIndex = Integer.parseInt(textureVertexIndexString) - 1;
+                } catch (NumberFormatException exception) {
+                    throw new ParsingException("integer", lineIndex);
+                }
             }
         }
         if (indices.length > 2) {
             String normalIndexString = indices[2];
             if (!normalIndexString.isEmpty()) {
-                faceWord.normalIndex = Integer.parseInt(normalIndexString) - 1;
+                try {
+                    faceWord.normalIndex = Integer.parseInt(normalIndexString) - 1;
+                } catch (NumberFormatException exception) {
+                    throw new ParsingException("integer", lineIndex);
+                }
             }
         }
 
         if (indices.length > 3) {
-            throw new ArgumentsSizeException(ArgumentsErrorType.MANY, lineIndex);
+            throw new ArgumentsSizeException(ArgumentsErrorType.MANY_IN_WORD, lineIndex);
         }
         return faceWord;
     }
@@ -59,14 +71,18 @@ public class FaceWord {
 
     public void checkIndices(int verticesSize, int textureVerticesSize, int normalsSize,
                              int lineIndex, int wordIndex) {
-        if (vertexIndex >= verticesSize) {
+        if (vertexIndex >= verticesSize || vertexIndex < 0) {
             throw new FaceWordIndexException("vertex", lineIndex, wordIndex);
         }
-        if (textureVertexIndex != null && textureVertexIndex >= textureVerticesSize) {
-            throw new FaceWordIndexException("texture vertex", lineIndex, wordIndex);
+        if (textureVertexIndex != null) {
+            if (textureVertexIndex >= textureVerticesSize || textureVertexIndex < 0) {
+                throw new FaceWordIndexException("texture vertex", lineIndex, wordIndex);
+            }
         }
-        if (normalIndex != null && normalIndex >= normalsSize) {
-            throw new FaceWordIndexException("normal", lineIndex, wordIndex);
+        if (normalIndex != null) {
+            if (normalIndex >= normalsSize || normalIndex < 0) {
+                throw new FaceWordIndexException("normal", lineIndex, wordIndex);
+            }
         }
     }
 
