@@ -9,7 +9,6 @@ import ru.cgvsu.yurov.objreader.exceptions.TextureException;
 import ru.cgvsu.yurov.objreader.exceptions.TokenException;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 public class ObjReaderFileParsingTest {

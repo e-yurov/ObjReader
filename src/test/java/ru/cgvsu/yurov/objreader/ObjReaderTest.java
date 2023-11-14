@@ -8,8 +8,6 @@ import ru.cgvsu.yurov.model.Model;
 import ru.cgvsu.yurov.objreader.exceptions.ArgumentsSizeException;
 import ru.cgvsu.yurov.objreader.exceptions.FaceWordTypeException;
 
-import java.io.File;
-
 public class ObjReaderTest {
     @Test
     void testTooFewVector3fArguments() {
@@ -172,5 +170,19 @@ public class ObjReaderTest {
             String expectedMessage = "Two different decimal separators used in one file.";
             Assertions.assertEquals(expectedMessage, exception.getMessage());
         }
+    }
+
+    @Test
+    void testSeparatorInComments() {
+        Model model = ObjReader.read("v 0.5 0 1.1#1,6");
+        Vector3f actual = model.getVertices().get(0);
+
+        Vector3f expected = new Vector3f(0.5F, 0F, 1.1F);
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(expected, actual),
+                () -> Assertions.assertEquals(1, model.getVerticesSize()),
+                () -> Assertions.assertEquals(0, model.getTextureVerticesSize()),
+                () -> Assertions.assertEquals(0, model.getNormalsSize())
+        );
     }
 }

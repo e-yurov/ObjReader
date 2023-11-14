@@ -24,7 +24,9 @@ public class ObjReader {
 
 	private int lineIndex = 0;
 	private final Model model = new Model();
+
 	private final DecimalFormat format = new DecimalFormat("0.#");
+	private Character decimalSeparator = null;
 
 	protected ObjReader() {}
 
@@ -41,27 +43,8 @@ public class ObjReader {
 
 	public static Model read(String content) {
 		ObjReader objReader = new ObjReader();
-		DecimalFormatSymbols symbols = identifyDecimalSeparator(content);
-		objReader.format.setDecimalFormatSymbols(symbols);
 		objReader.readModel(content);
 		return objReader.model;
-	}
-
-	private static DecimalFormatSymbols identifyDecimalSeparator(String content) {
-		DecimalFormatSymbols symbols = new DecimalFormatSymbols();
-		int dotIndex = content.indexOf('.');
-		int commaIndex = content.indexOf(',');
-		if (dotIndex > -1 && commaIndex > -1) {
-			// TODO: change to ignore comments
-			throw new RuntimeException("Two different decimal separators used in one file.");
-		}
-		if (commaIndex > -1) {
-			symbols.setDecimalSeparator(',');
-		} else {
-			symbols.setDecimalSeparator('.');
-		}
-
-		return symbols;
 	}
 
 	protected void readModel(String content) {
@@ -69,12 +52,7 @@ public class ObjReader {
 		scanner.useLocale(Locale.ROOT);
 		while (scanner.hasNextLine()) {
 			lineIndex++;
-			String line = scanner.nextLine();
-
-			int commentIndex = line.indexOf(COMMENT_TOKEN);
-			if (commentIndex > -1) {
-				line = line.substring(0, commentIndex);
-			}
+			String line = handleLine(scanner.nextLine());
 
 			if (line.isBlank()) {
 				continue;
@@ -100,10 +78,49 @@ public class ObjReader {
 
 					model.addPolygon(polygon);
 				}
-				// TODO: add group tag support
+				// TODO: add group token support
 				default -> throw new TokenException(lineIndex);
 			}
 		}
+	}
+
+	private String handleLine(String line) {
+		int commentIndex = line.indexOf(COMMENT_TOKEN);
+		if (commentIndex > -1) {
+			line = line.substring(0, commentIndex);
+		}
+
+		int dotIndex = line.indexOf('.');
+		int commaIndex = line.indexOf(',');
+
+		if (dotIndex > -1 && commaIndex > -1) {
+			throw new RuntimeException("Two different decimal separators used in one file.");
+		}
+
+		if (decimalSeparator != null) {
+			if (dotIndex > -1 && decimalSeparator == ',') {
+				throw new RuntimeException("Two different decimal separators used in one file.");
+			}
+			if (commaIndex > -1 && decimalSeparator == '.') {
+				throw new RuntimeException("Two different decimal separators used in one file.");
+			}
+
+			return line;
+		}
+
+		DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+		if (commaIndex > -1) {
+			symbols.setDecimalSeparator(',');
+			decimalSeparator = ',';
+			format.setDecimalFormatSymbols(symbols);
+		}
+		if (dotIndex > -1){
+			symbols.setDecimalSeparator('.');
+			decimalSeparator = '.';
+			format.setDecimalFormatSymbols(symbols);
+		}
+
+		return line;
 	}
 
 	protected Vector2f parseVector2f(final String[] wordsInLineWithoutToken) {
