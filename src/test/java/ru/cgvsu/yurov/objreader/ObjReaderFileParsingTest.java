@@ -7,9 +7,7 @@ import ru.cgvsu.yurov.math.Vector3f;
 import ru.cgvsu.yurov.model.Group;
 import ru.cgvsu.yurov.model.Model;
 import ru.cgvsu.yurov.model.Polygon;
-import ru.cgvsu.yurov.objreader.exceptions.GroupNameException;
-import ru.cgvsu.yurov.objreader.exceptions.TextureException;
-import ru.cgvsu.yurov.objreader.exceptions.TokenException;
+import ru.cgvsu.yurov.objreader.exceptions.*;
 
 import java.io.File;
 import java.util.List;
@@ -105,6 +103,32 @@ public class ObjReaderFileParsingTest {
             Assertions.fail();
         } catch (GroupNameException exception) {
             String expectedMessage = "Error parsing OBJ file on line: 1. Group must have a name.";
+            Assertions.assertEquals(expectedMessage, exception.getMessage());
+        }
+    }
+
+    @Test
+    void testCyrillicAndSpaces() {
+        Model model = ObjReader.read(new File("src/test/resources/ObjFiles/Тест кириллица с пробелами.obj"));
+    }
+
+    @Test
+    void testPolygonBeforeVertices() {
+        Model model = ObjReader.read(new File("src/test/resources/ObjFiles/PolygonBeforeVertices.obj"));
+
+        Polygon f = new Polygon();
+        f.setVertexIndices(List.of(0, 1, 2));
+
+        Assertions.assertEquals(f, model.getPolygons().get(0));
+    }
+
+    @Test
+    void testPolygonIndicesOutOfBounds() {
+        try {
+            Model model = ObjReader.read(new File("src/test/resources/ObjFiles/PolygonVertexIndicesOutOfBounds.obj"));
+            Assertions.fail();
+        } catch (FaceWordIndexException exception) {
+            String expectedMessage = "Error parsing OBJ file on line: 5. Exception in face argument 3: vertex index out of bounds.";
             Assertions.assertEquals(expectedMessage, exception.getMessage());
         }
     }

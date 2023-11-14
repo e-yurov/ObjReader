@@ -66,64 +66,24 @@ public class ObjReader {
 			String[] wordsInLineWithoutToken =  Arrays.copyOfRange(wordsInLine, 1, wordsInLine.length);
 
 			switch (token) {
-				case OBJ_VERTEX_TOKEN -> {
-					Vector3f vertex = parseVector3f(wordsInLineWithoutToken);
-					model.addVertex(vertex);
-					if (currentGroup != null) {
-						currentGroup.addVertex(vertex);
-					}
-				}
-				case OBJ_TEXTURE_TOKEN -> {
-					Vector2f textureVertex = parseVector2f(wordsInLineWithoutToken);
-					model.addTextureVertex(textureVertex);
-					if (currentGroup != null) {
-						currentGroup.addTextureVertex(textureVertex);
-					}
-				}
-				case OBJ_NORMAL_TOKEN -> {
-					Vector3f normal = parseVector3f(wordsInLineWithoutToken);
-					model.addNormal(normal);
-					if (currentGroup != null) {
-						currentGroup.addNormal(normal);
-					}
-				}
-				case OBJ_FACE_TOKEN -> {
-					Polygon polygon = parseFace(wordsInLineWithoutToken);
-
-					if (!model.getPolygons().isEmpty()) {
-						Polygon firstPolygon = model.getFirstPolygon();
-						if (polygon.hasTexture() != firstPolygon.hasTexture()) {
-							throw new TextureException(lineIndex);
-						}
-					}
-
-					model.addPolygon(polygon);
-					if (currentGroup != null) {
-						currentGroup.addPolygon(polygon);
-					}
-				}
-				case OBJ_GROUP_TOKEN -> {
-					if (wordsInLineWithoutToken.length == 0) {
-						throw new GroupNameException(lineIndex);
-					}
-
-					if (currentGroup != null) {
-						model.addGroup(currentGroup);
-					}
-
-					StringBuilder sb = new StringBuilder();
-                    for (String s : wordsInLineWithoutToken) {
-                        sb.append(s);
-                    }
-					currentGroup = new Group(sb.toString());
-				}
-				// TODO: add group token support
+				case OBJ_VERTEX_TOKEN -> handleVertex(wordsInLineWithoutToken);
+				case OBJ_TEXTURE_TOKEN -> handleTextureVertex(wordsInLineWithoutToken);
+				case OBJ_NORMAL_TOKEN -> handleNormal(wordsInLineWithoutToken);
+				case OBJ_FACE_TOKEN -> handleFace(wordsInLineWithoutToken);
+				case OBJ_GROUP_TOKEN -> handleGroup(wordsInLineWithoutToken);
 				default -> throw new TokenException(lineIndex);
 			}
 		}
 
 		if (currentGroup != null) {
 			model.addGroup(currentGroup);
+		}
+
+		int verticesSize = model.getVerticesSize();
+		int textureVerticesSize = model.getTextureVerticesSize();
+		int normalsSize = model.getNormalsSize();
+		for (Polygon polygon: model.getPolygons()) {
+			polygon.checkIndices(verticesSize, textureVerticesSize, normalsSize);
 		}
 	}
 
@@ -164,6 +124,62 @@ public class ObjReader {
 		}
 
 		return line;
+	}
+
+	private void handleVertex(String[] wordsInLineWithoutToken) {
+		Vector3f vertex = parseVector3f(wordsInLineWithoutToken);
+		model.addVertex(vertex);
+		if (currentGroup != null) {
+			currentGroup.addVertex(vertex);
+		}
+	}
+
+	private void handleTextureVertex(String[] wordsInLineWithoutToken) {
+		Vector2f textureVertex = parseVector2f(wordsInLineWithoutToken);
+		model.addTextureVertex(textureVertex);
+		if (currentGroup != null) {
+			currentGroup.addTextureVertex(textureVertex);
+		}
+	}
+
+	private void handleNormal(String[] wordsInLineWithoutToken) {
+		Vector3f normal = parseVector3f(wordsInLineWithoutToken);
+		model.addNormal(normal);
+		if (currentGroup != null) {
+			currentGroup.addNormal(normal);
+		}
+	}
+
+	private void handleFace(String[] wordsInLineWithoutToken) {
+		Polygon polygon = parseFace(wordsInLineWithoutToken);
+
+		if (!model.getPolygons().isEmpty()) {
+			Polygon firstPolygon = model.getFirstPolygon();
+			if (polygon.hasTexture() != firstPolygon.hasTexture()) {
+				throw new TextureException(lineIndex);
+			}
+		}
+
+		model.addPolygon(polygon);
+		if (currentGroup != null) {
+			currentGroup.addPolygon(polygon);
+		}
+	}
+
+	private void handleGroup(String[] wordsInLineWithoutToken) {
+		if (wordsInLineWithoutToken.length == 0) {
+			throw new GroupNameException(lineIndex);
+		}
+
+		if (currentGroup != null) {
+			model.addGroup(currentGroup);
+		}
+
+		StringBuilder sb = new StringBuilder();
+		for (String s : wordsInLineWithoutToken) {
+			sb.append(s);
+		}
+		currentGroup = new Group(sb.toString());
 	}
 
 	protected Vector2f parseVector2f(final String[] wordsInLineWithoutToken) {
@@ -213,18 +229,12 @@ public class ObjReader {
 	}
 
 	protected Polygon createPolygon(FaceWord[] faceWords) {
-		int verticesSize = model.getVerticesSize();
-		int textureVerticesSize = model.getTextureVerticesSize();
-		int normalsSize = model.getNormalsSize();
-
 		Polygon polygon = new Polygon();
 		List<Integer> vertexIndices = new ArrayList<>();
 		List<Integer> textureVertexIndices = new ArrayList<>();
 		List<Integer> normalIndices = new ArrayList<>();
 		for (int i = 0; i < faceWords.length; i ++) {
 			FaceWord faceWord = faceWords[i];
-			// TODO: do inices check after all faces
-			faceWord.checkIndices(verticesSize, textureVerticesSize, normalsSize, lineIndex, i);
 
 			Integer vertexIndex = faceWord.getVertexIndex();
 			if (vertexIndex != null) {
@@ -242,6 +252,7 @@ public class ObjReader {
 		polygon.setVertexIndices(vertexIndices);
 		polygon.setTextureVertexIndices(textureVertexIndices);
 		polygon.setNormalIndices(normalIndices);
+		polygon.setLineIndex(lineIndex);
 
 		return polygon;
 	}
