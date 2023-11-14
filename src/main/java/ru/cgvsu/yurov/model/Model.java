@@ -12,6 +12,7 @@ public class Model {
     private List<Vector2f> textureVertices = new ArrayList<>();
     private List<Vector3f> normals = new ArrayList<>();
     private List<Polygon> polygons = new ArrayList<>();
+    private List<Group> groups = new ArrayList<>();
 
     public void addVertex(Vector3f vertex) {
         vertices.add(vertex);
@@ -27,6 +28,10 @@ public class Model {
 
     public void addPolygon(Polygon polygon) {
         polygons.add(polygon);
+    }
+
+    public void addGroup(Group group) {
+        groups.add(group);
     }
 
     public Polygon getFirstPolygon() {
@@ -64,5 +69,9 @@ public class Model {
 
     public List<Polygon> getPolygons() {
         return polygons;
+    }
+
+    public List<Group> getGroups() {
+        return groups;
     }
 }

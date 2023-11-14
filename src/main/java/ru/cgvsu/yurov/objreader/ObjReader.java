@@ -2,6 +2,7 @@ package ru.cgvsu.yurov.objreader;
 
 import ru.cgvsu.yurov.math.Vector2f;
 import ru.cgvsu.yurov.math.Vector3f;
+import ru.cgvsu.yurov.model.Group;
 import ru.cgvsu.yurov.model.Model;
 import ru.cgvsu.yurov.model.Polygon;
 import ru.cgvsu.yurov.objreader.exceptions.*;
@@ -20,10 +21,12 @@ public class ObjReader {
 	private static final String OBJ_TEXTURE_TOKEN = "vt";
 	private static final String OBJ_NORMAL_TOKEN = "vn";
 	private static final String OBJ_FACE_TOKEN = "f";
+	private static final String OBJ_GROUP_TOKEN = "g";
 	private static final String COMMENT_TOKEN = "#";
 
 	private int lineIndex = 0;
 	private final Model model = new Model();
+	private Group currentGroup = null;
 
 	private final DecimalFormat format = new DecimalFormat("0.#");
 	private Character decimalSeparator = null;
@@ -63,9 +66,27 @@ public class ObjReader {
 			String[] wordsInLineWithoutToken =  Arrays.copyOfRange(wordsInLine, 1, wordsInLine.length);
 
 			switch (token) {
-				case OBJ_VERTEX_TOKEN -> model.addVertex(parseVector3f(wordsInLineWithoutToken));
-				case OBJ_TEXTURE_TOKEN -> model.addTextureVertex(parseVector2f(wordsInLineWithoutToken));
-				case OBJ_NORMAL_TOKEN -> model.addNormal(parseVector3f(wordsInLineWithoutToken));
+				case OBJ_VERTEX_TOKEN -> {
+					Vector3f vertex = parseVector3f(wordsInLineWithoutToken);
+					model.addVertex(vertex);
+					if (currentGroup != null) {
+						currentGroup.addVertex(vertex);
+					}
+				}
+				case OBJ_TEXTURE_TOKEN -> {
+					Vector2f textureVertex = parseVector2f(wordsInLineWithoutToken);
+					model.addTextureVertex(textureVertex);
+					if (currentGroup != null) {
+						currentGroup.addTextureVertex(textureVertex);
+					}
+				}
+				case OBJ_NORMAL_TOKEN -> {
+					Vector3f normal = parseVector3f(wordsInLineWithoutToken);
+					model.addNormal(normal);
+					if (currentGroup != null) {
+						currentGroup.addNormal(normal);
+					}
+				}
 				case OBJ_FACE_TOKEN -> {
 					Polygon polygon = parseFace(wordsInLineWithoutToken);
 
@@ -77,10 +98,32 @@ public class ObjReader {
 					}
 
 					model.addPolygon(polygon);
+					if (currentGroup != null) {
+						currentGroup.addPolygon(polygon);
+					}
+				}
+				case OBJ_GROUP_TOKEN -> {
+					if (wordsInLineWithoutToken.length == 0) {
+						throw new GroupNameException(lineIndex);
+					}
+
+					if (currentGroup != null) {
+						model.addGroup(currentGroup);
+					}
+
+					StringBuilder sb = new StringBuilder();
+                    for (String s : wordsInLineWithoutToken) {
+                        sb.append(s);
+                    }
+					currentGroup = new Group(sb.toString());
 				}
 				// TODO: add group token support
 				default -> throw new TokenException(lineIndex);
 			}
+		}
+
+		if (currentGroup != null) {
+			model.addGroup(currentGroup);
 		}
 	}
 
@@ -180,6 +223,7 @@ public class ObjReader {
 		List<Integer> normalIndices = new ArrayList<>();
 		for (int i = 0; i < faceWords.length; i ++) {
 			FaceWord faceWord = faceWords[i];
+			// TODO: do inices check after all faces
 			faceWord.checkIndices(verticesSize, textureVerticesSize, normalsSize, lineIndex, i);
 
 			Integer vertexIndex = faceWord.getVertexIndex();

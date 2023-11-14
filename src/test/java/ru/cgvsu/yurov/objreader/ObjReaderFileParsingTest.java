@@ -2,9 +2,12 @@ package ru.cgvsu.yurov.objreader;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import ru.cgvsu.yurov.math.Vector2f;
 import ru.cgvsu.yurov.math.Vector3f;
+import ru.cgvsu.yurov.model.Group;
 import ru.cgvsu.yurov.model.Model;
 import ru.cgvsu.yurov.model.Polygon;
+import ru.cgvsu.yurov.objreader.exceptions.GroupNameException;
 import ru.cgvsu.yurov.objreader.exceptions.TextureException;
 import ru.cgvsu.yurov.objreader.exceptions.TokenException;
 
@@ -58,5 +61,51 @@ public class ObjReaderFileParsingTest {
                 () -> Assertions.assertEquals(List.of(vn1, vn2, vn3), model.getNormals()),
                 () -> Assertions.assertEquals(List.of(f1, f2), model.getPolygons())
         );
+    }
+
+    @Test
+    void testGroups() {
+        Model model = ObjReader.read(new File("src/test/resources/ObjFiles/GroupTest.obj"));
+
+        Vector2f vt1 = new Vector2f(1, 0);
+        Vector2f vt2 = new Vector2f(1, 1);
+        Vector2f vt3 = new Vector2f(0, 1);
+
+        Polygon f1 = new Polygon();
+        f1.setVertexIndices(List.of(1, 2, 3));
+        f1.setTextureVertexIndices(List.of(3, 4, 5));
+
+        List<Group> groups = model.getGroups();
+        Group g1Actual = groups.get(0);
+        Group g2Actual = groups.get(1);
+
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(2, groups.size()),
+                () -> Assertions.assertEquals("group0", g1Actual.getName()),
+                () -> Assertions.assertEquals("Group01", g2Actual.getName()),
+
+                () -> Assertions.assertEquals(0, g1Actual.getVerticesSize()),
+                () -> Assertions.assertEquals(3, g1Actual.getTextureVerticesSize()),
+                () -> Assertions.assertEquals(0, g1Actual.getNormalsSize()),
+                () -> Assertions.assertEquals(0, g1Actual.getPolygonsSize()),
+                () -> Assertions.assertEquals(List.of(vt1, vt2, vt3), g1Actual.getTextureVertices()),
+
+                () -> Assertions.assertEquals(0, g2Actual.getVerticesSize()),
+                () -> Assertions.assertEquals(0, g2Actual.getTextureVerticesSize()),
+                () -> Assertions.assertEquals(0, g2Actual.getNormalsSize()),
+                () -> Assertions.assertEquals(1, g2Actual.getPolygonsSize()),
+                () -> Assertions.assertEquals(List.of(f1), g2Actual.getPolygons())
+        );
+    }
+
+    @Test
+    void testGroupNameException() {
+        try {
+            Model model = ObjReader.read(new File("src/test/resources/ObjFiles/GroupNameExceptionTest.obj"));
+            Assertions.fail();
+        } catch (GroupNameException exception) {
+            String expectedMessage = "Error parsing OBJ file on line: 1. Group must have a name.";
+            Assertions.assertEquals(expectedMessage, exception.getMessage());
+        }
     }
 }
