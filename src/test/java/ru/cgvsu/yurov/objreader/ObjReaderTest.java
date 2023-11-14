@@ -4,17 +4,13 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import ru.cgvsu.yurov.math.Vector2f;
 import ru.cgvsu.yurov.math.Vector3f;
+import ru.cgvsu.yurov.model.Model;
 import ru.cgvsu.yurov.objreader.exceptions.ArgumentsSizeException;
 import ru.cgvsu.yurov.objreader.exceptions.FaceWordTypeException;
 
 import java.io.File;
 
 public class ObjReaderTest {
-    /*@Test
-    void test1() {
-        ObjReader.read(new File("src/test/resources/SimpleModelsForReaderTests/NonManifold.obj"));
-    }*/
-
     @Test
     void testTooFewVector3fArguments() {
         ObjReader objReader = new ObjReader();
@@ -101,6 +97,79 @@ public class ObjReaderTest {
             Assertions.fail();
         } catch (FaceWordTypeException exception) {
             String expectedMessage = "Error parsing OBJ file on line: 0. Several argument types in one polygon.";
+            Assertions.assertEquals(expectedMessage, exception.getMessage());
+        }
+    }
+
+
+    @Test
+    void testParseVertex() {
+        Model model = ObjReader.read("v 0.5 0 1.1");
+        Vector3f actualVector = model.getVertices().get(0);
+
+        Vector3f expectedVector = new Vector3f(0.5F, 0F, 1.1F);
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(expectedVector, actualVector),
+                () -> Assertions.assertEquals(1, model.getVerticesSize()),
+                () -> Assertions.assertEquals(0, model.getTextureVerticesSize()),
+                () -> Assertions.assertEquals(0, model.getNormalsSize())
+        );
+    }
+
+    @Test
+    void testParseTextureVertex() {
+        Model model = ObjReader.read("vt 0 0.7");
+        Vector2f actualVector = model.getTextureVertices().get(0);
+
+        Vector2f expectedVector = new Vector2f(0F, 0.7F);
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(expectedVector, actualVector),
+                () -> Assertions.assertEquals(0, model.getVerticesSize()),
+                () -> Assertions.assertEquals(1, model.getTextureVerticesSize()),
+                () -> Assertions.assertEquals(0, model.getNormalsSize())
+        );
+    }
+
+    @Test
+    void testParseNormal() {
+        Model model = ObjReader.read("vn 0.0 0 -1.1");
+        Vector3f actualVector = model.getNormals().get(0);
+
+        Vector3f expectedVector = new Vector3f(0F, 0F, -1.1F);
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(expectedVector, actualVector),
+                () -> Assertions.assertEquals(0, model.getVerticesSize()),
+                () -> Assertions.assertEquals(0, model.getTextureVerticesSize()),
+                () -> Assertions.assertEquals(1, model.getNormalsSize())
+        );
+    }
+
+
+    @Test
+    void testDecimalSeparator() {
+        Model model = ObjReader.read("v 0.5 0 1.1");
+        Vector3f actual = model.getVertices().get(0);
+
+        Vector3f expected = new Vector3f(0.5F, 0F, 1.1F);
+        Assertions.assertEquals(expected, actual);
+    }
+
+    @Test
+    void testCommaSeparator() {
+        Model model = ObjReader.read("v 0,5 0 1,1");
+        Vector3f actual = model.getVertices().get(0);
+
+        Vector3f expected = new Vector3f(0.5F, 0F, 1.1F);
+        Assertions.assertEquals(expected, actual);
+    }
+
+    @Test
+    void testBothSeparators() {
+        try {
+            Model model = ObjReader.read("v 0.5 0 1,1");
+            Assertions.fail();
+        } catch (RuntimeException exception) {
+            String expectedMessage = "Two different decimal separators used in one file.";
             Assertions.assertEquals(expectedMessage, exception.getMessage());
         }
     }

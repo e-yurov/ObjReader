@@ -52,6 +52,7 @@ public class ObjReader {
 		int dotIndex = content.indexOf('.');
 		int commaIndex = content.indexOf(',');
 		if (dotIndex > -1 && commaIndex > -1) {
+			// TODO: change to ignore comments
 			throw new RuntimeException("Two different decimal separators used in one file.");
 		}
 		if (commaIndex > -1) {
@@ -78,9 +79,8 @@ public class ObjReader {
 			if (line.isBlank()) {
 				continue;
 			}
-			//ArrayList<String> wordsInLine = new ArrayList<>(Arrays.asList(line.split("\\s+")));
-			String[] wordsInLine = line.split("\\s+");
 
+			String[] wordsInLine = line.split("\\s+");
 			final String token = wordsInLine[0];
 			String[] wordsInLineWithoutToken =  Arrays.copyOfRange(wordsInLine, 1, wordsInLine.length);
 
@@ -91,7 +91,7 @@ public class ObjReader {
 				case OBJ_FACE_TOKEN -> {
 					Polygon polygon = parseFace(wordsInLineWithoutToken);
 
-					if (!model.polygons.isEmpty()) {
+					if (!model.getPolygons().isEmpty()) {
 						Polygon firstPolygon = model.getFirstPolygon();
 						if (polygon.hasTexture() != firstPolygon.hasTexture()) {
 							throw new TextureException(lineIndex);
@@ -158,9 +158,9 @@ public class ObjReader {
 		int normalsSize = model.getNormalsSize();
 
 		Polygon polygon = new Polygon();
-		ArrayList<Integer> vertexIndices = new ArrayList<>();
-		ArrayList<Integer> textureVertexIndices = new ArrayList<>();
-		ArrayList<Integer> normalIndices = new ArrayList<>();
+		List<Integer> vertexIndices = new ArrayList<>();
+		List<Integer> textureVertexIndices = new ArrayList<>();
+		List<Integer> normalIndices = new ArrayList<>();
 		for (int i = 0; i < faceWords.length; i ++) {
 			FaceWord faceWord = faceWords[i];
 			faceWord.checkIndices(verticesSize, textureVerticesSize, normalsSize, lineIndex, i);
