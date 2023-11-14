@@ -19,17 +19,17 @@ public class Polygon {
     }
 
     public void setVertexIndices(ArrayList<Integer> vertexIndices) {
-        assert vertexIndices.size() >= 3;
+        //assert vertexIndices.size() >= 3;
         this.vertexIndices = vertexIndices;
     }
 
     public void setTextureVertexIndices(ArrayList<Integer> textureVertexIndices) {
-        assert textureVertexIndices.size() >= 3;
+        //assert textureVertexIndices.size() >= 3;
         this.textureVertexIndices = textureVertexIndices;
     }
 
     public void setNormalIndices(ArrayList<Integer> normalIndices) {
-        assert normalIndices.size() >= 3;
+        //assert normalIndices.size() >= 3;
         this.normalIndices = normalIndices;
     }
 

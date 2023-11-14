@@ -26,7 +26,7 @@ public class ObjReader {
 	private final Model model = new Model();
 	private final DecimalFormat format = new DecimalFormat("0.#");
 
-	private ObjReader() {}
+	protected ObjReader() {}
 
 	public static Model read(File file) {
 		String content;
@@ -63,7 +63,7 @@ public class ObjReader {
 		return symbols;
 	}
 
-	private void readModel(String content) {
+	protected void readModel(String content) {
 		Scanner scanner = new Scanner(content);
 		scanner.useLocale(Locale.ROOT);
 		while (scanner.hasNextLine()) {
@@ -78,17 +78,18 @@ public class ObjReader {
 			if (line.isBlank()) {
 				continue;
 			}
-			ArrayList<String> wordsInLine = new ArrayList<>(Arrays.asList(line.split("\\s+")));
+			//ArrayList<String> wordsInLine = new ArrayList<>(Arrays.asList(line.split("\\s+")));
+			String[] wordsInLine = line.split("\\s+");
 
-			final String token = wordsInLine.get(0);
-			wordsInLine.remove(0);
+			final String token = wordsInLine[0];
+			String[] wordsInLineWithoutToken =  Arrays.copyOfRange(wordsInLine, 1, wordsInLine.length);
 
 			switch (token) {
-				case OBJ_VERTEX_TOKEN -> model.addVertex(parseVector3f(wordsInLine));
-				case OBJ_TEXTURE_TOKEN -> model.addTextureVertex(parseVector2f(wordsInLine));
-				case OBJ_NORMAL_TOKEN -> model.addNormal(parseVector3f(wordsInLine));
+				case OBJ_VERTEX_TOKEN -> model.addVertex(parseVector3f(wordsInLineWithoutToken));
+				case OBJ_TEXTURE_TOKEN -> model.addTextureVertex(parseVector2f(wordsInLineWithoutToken));
+				case OBJ_NORMAL_TOKEN -> model.addNormal(parseVector3f(wordsInLineWithoutToken));
 				case OBJ_FACE_TOKEN -> {
-					Polygon polygon = parseFace(wordsInLine);
+					Polygon polygon = parseFace(wordsInLineWithoutToken);
 
 					if (!model.polygons.isEmpty()) {
 						Polygon firstPolygon = model.getFirstPolygon();
@@ -99,37 +100,38 @@ public class ObjReader {
 
 					model.addPolygon(polygon);
 				}
+				// TODO: add group tag support
 				default -> throw new TokenException(lineIndex);
 			}
 		}
 	}
 
-	protected Vector2f parseVector2f(final ArrayList<String> wordsInLineWithoutToken) {
-		checkSize(wordsInLineWithoutToken.size(), 2);
+	protected Vector2f parseVector2f(final String[] wordsInLineWithoutToken) {
+		checkSize(wordsInLineWithoutToken.length, 2);
 		try {
 			return new Vector2f(
-					format.parse(wordsInLineWithoutToken.get(0)).floatValue(),
-					format.parse(wordsInLineWithoutToken.get(1)).floatValue());
+					format.parse(wordsInLineWithoutToken[0]).floatValue(),
+					format.parse(wordsInLineWithoutToken[1]).floatValue());
 
 		} catch (ParseException e) {
 			throw new ParsingException("float", lineIndex);
 		}
 	}
 
-	protected Vector3f parseVector3f(final ArrayList<String> wordsInLineWithoutToken) {
-		checkSize(wordsInLineWithoutToken.size(), 3);
+	protected Vector3f parseVector3f(final String[] wordsInLineWithoutToken) {
+		checkSize(wordsInLineWithoutToken.length, 3);
 		try {
 			return new Vector3f(
-					format.parse(wordsInLineWithoutToken.get(0)).floatValue(),
-					format.parse(wordsInLineWithoutToken.get(1)).floatValue(),
-					format.parse(wordsInLineWithoutToken.get(2)).floatValue());
+					format.parse(wordsInLineWithoutToken[0]).floatValue(),
+					format.parse(wordsInLineWithoutToken[1]).floatValue(),
+					format.parse(wordsInLineWithoutToken[2]).floatValue());
 
 		} catch (ParseException e) {
 			throw new ParsingException("float", lineIndex);
 		}
 	}
 
-	protected Polygon parseFace(final ArrayList<String> wordsInLineWithoutToken) {
+	protected Polygon parseFace(final String[] wordsInLineWithoutToken) {
 		List<FaceWord> faceWords = new ArrayList<>();
 		Set<WordType> types = new HashSet<>();
 
@@ -150,7 +152,7 @@ public class ObjReader {
 		return createPolygon(faceWords.toArray(new FaceWord[0]));
 	}
 
-	private Polygon createPolygon(FaceWord[] faceWords) {
+	protected Polygon createPolygon(FaceWord[] faceWords) {
 		int verticesSize = model.getVerticesSize();
 		int textureVerticesSize = model.getTextureVerticesSize();
 		int normalsSize = model.getNormalsSize();
@@ -162,6 +164,7 @@ public class ObjReader {
 		for (int i = 0; i < faceWords.length; i ++) {
 			FaceWord faceWord = faceWords[i];
 			faceWord.checkIndices(verticesSize, textureVerticesSize, normalsSize, lineIndex, i);
+
 			Integer vertexIndex = faceWord.getVertexIndex();
 			if (vertexIndex != null) {
 				vertexIndices.add(vertexIndex);
