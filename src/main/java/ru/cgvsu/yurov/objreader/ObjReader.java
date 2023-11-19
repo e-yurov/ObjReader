@@ -66,9 +66,9 @@ public class ObjReader {
 			String[] wordsInLineWithoutToken =  Arrays.copyOfRange(wordsInLine, 1, wordsInLine.length);
 
 			switch (token) {
-				case OBJ_VERTEX_TOKEN -> handleVertex(wordsInLineWithoutToken);
-				case OBJ_TEXTURE_TOKEN -> handleTextureVertex(wordsInLineWithoutToken);
-				case OBJ_NORMAL_TOKEN -> handleNormal(wordsInLineWithoutToken);
+				case OBJ_VERTEX_TOKEN -> model.addVertex(parseVector3f(wordsInLineWithoutToken));
+				case OBJ_TEXTURE_TOKEN -> model.addTextureVertex(parseVector2f(wordsInLineWithoutToken));
+				case OBJ_NORMAL_TOKEN -> model.addNormal(parseVector3f(wordsInLineWithoutToken));
 				case OBJ_FACE_TOKEN -> handleFace(wordsInLineWithoutToken);
 				case OBJ_GROUP_TOKEN -> handleGroup(wordsInLineWithoutToken);
 				default -> throw new TokenException(lineIndex);
@@ -124,30 +124,6 @@ public class ObjReader {
 		}
 
 		return line;
-	}
-
-	private void handleVertex(String[] wordsInLineWithoutToken) {
-		Vector3f vertex = parseVector3f(wordsInLineWithoutToken);
-		model.addVertex(vertex);
-		if (currentGroup != null) {
-			currentGroup.addVertex(vertex);
-		}
-	}
-
-	private void handleTextureVertex(String[] wordsInLineWithoutToken) {
-		Vector2f textureVertex = parseVector2f(wordsInLineWithoutToken);
-		model.addTextureVertex(textureVertex);
-		if (currentGroup != null) {
-			currentGroup.addTextureVertex(textureVertex);
-		}
-	}
-
-	private void handleNormal(String[] wordsInLineWithoutToken) {
-		Vector3f normal = parseVector3f(wordsInLineWithoutToken);
-		model.addNormal(normal);
-		if (currentGroup != null) {
-			currentGroup.addNormal(normal);
-		}
 	}
 
 	private void handleFace(String[] wordsInLineWithoutToken) {
@@ -233,22 +209,22 @@ public class ObjReader {
 		List<Integer> vertexIndices = new ArrayList<>();
 		List<Integer> textureVertexIndices = new ArrayList<>();
 		List<Integer> normalIndices = new ArrayList<>();
-		for (int i = 0; i < faceWords.length; i ++) {
-			FaceWord faceWord = faceWords[i];
 
-			Integer vertexIndex = faceWord.getVertexIndex();
-			if (vertexIndex != null) {
-				vertexIndices.add(vertexIndex);
-			}
-			Integer textureVertexIndex = faceWord.getTextureVertexIndex();
-			if (textureVertexIndex != null) {
-				textureVertexIndices.add(textureVertexIndex);
-			}
-			Integer normalIndex = faceWord.getNormalIndex();
-			if (normalIndex != null) {
-				normalIndices.add(normalIndex);
-			}
-		}
+        for (FaceWord faceWord : faceWords) {
+            Integer vertexIndex = faceWord.getVertexIndex();
+            if (vertexIndex != null) {
+                vertexIndices.add(vertexIndex);
+            }
+            Integer textureVertexIndex = faceWord.getTextureVertexIndex();
+            if (textureVertexIndex != null) {
+                textureVertexIndices.add(textureVertexIndex);
+            }
+            Integer normalIndex = faceWord.getNormalIndex();
+            if (normalIndex != null) {
+                normalIndices.add(normalIndex);
+            }
+        }
+
 		polygon.setVertexIndices(vertexIndices);
 		polygon.setTextureVertexIndices(textureVertexIndices);
 		polygon.setNormalIndices(normalIndices);

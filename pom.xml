@@ -79,4 +79,5 @@
             </plugin>
         </plugins>
     </reporting>
+<!--    mvn clean install site -P test-->
 </project>
