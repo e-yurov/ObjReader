@@ -2,7 +2,6 @@ package ru.cgvsu.yurov.objreader;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import ru.cgvsu.yurov.math.Vector2f;
 import ru.cgvsu.yurov.math.Vector3f;
 import ru.cgvsu.yurov.model.Group;
 import ru.cgvsu.yurov.model.Model;
@@ -75,7 +74,7 @@ public class ObjReaderFileParsingTest {
 
         Assertions.assertAll(
                 () -> Assertions.assertEquals(2, groups.size()),
-                () -> Assertions.assertEquals("group0", g1Actual.getName()),
+                () -> Assertions.assertEquals("group gr 0", g1Actual.getName()),
                 () -> Assertions.assertEquals("Group01", g2Actual.getName()),
 
                 () -> Assertions.assertEquals(0, g1Actual.getPolygonsSize()),

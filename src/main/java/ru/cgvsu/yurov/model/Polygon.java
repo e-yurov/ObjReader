@@ -10,13 +10,45 @@ public class Polygon {
     private List<Integer> vertexIndices;
     private List<Integer> textureVertexIndices;
     private List<Integer> normalIndices;
-    private int lineIndex;
 
     public Polygon() {
         vertexIndices = new ArrayList<>();
         textureVertexIndices = new ArrayList<>();
         normalIndices = new ArrayList<>();
     }
+
+    public List<Integer> getVertexIndices() {
+        return vertexIndices;
+    }
+
+    public void setVertexIndices(List<Integer> vertexIndices) {
+        this.vertexIndices = vertexIndices;
+    }
+
+    public List<Integer> getTextureVertexIndices() {
+        return textureVertexIndices;
+    }
+
+    public void setTextureVertexIndices(List<Integer> textureVertexIndices) {
+        this.textureVertexIndices = textureVertexIndices;
+    }
+
+    public List<Integer> getNormalIndices() {
+        return normalIndices;
+    }
+
+    public void setNormalIndices(List<Integer> normalIndices) {
+        this.normalIndices = normalIndices;
+    }
+
+
+
+    // Добавленные мной поля и методы
+    // TODO: скопировать себе в проект все, что находится ниже
+
+
+
+    private int lineIndex;
 
     public boolean hasTexture() {
         return !textureVertexIndices.isEmpty();
@@ -58,30 +90,6 @@ public class Polygon {
     @Override
     public int hashCode() {
         return Objects.hash(vertexIndices, textureVertexIndices, normalIndices);
-    }
-
-    public List<Integer> getVertexIndices() {
-        return vertexIndices;
-    }
-
-    public void setVertexIndices(List<Integer> vertexIndices) {
-        this.vertexIndices = vertexIndices;
-    }
-
-    public List<Integer> getTextureVertexIndices() {
-        return textureVertexIndices;
-    }
-
-    public void setTextureVertexIndices(List<Integer> textureVertexIndices) {
-        this.textureVertexIndices = textureVertexIndices;
-    }
-
-    public List<Integer> getNormalIndices() {
-        return normalIndices;
-    }
-
-    public void setNormalIndices(List<Integer> normalIndices) {
-        this.normalIndices = normalIndices;
     }
 
     public int getLineIndex() {

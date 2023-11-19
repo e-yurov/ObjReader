@@ -153,8 +153,9 @@ public class ObjReader {
 
 		StringBuilder sb = new StringBuilder();
 		for (String s : wordsInLineWithoutToken) {
-			sb.append(s);
+			sb.append(s).append(' ');
 		}
+		sb.deleteCharAt(sb.length() - 1);
 		currentGroup = new Group(sb.toString());
 	}
 

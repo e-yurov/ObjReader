@@ -69,23 +69,6 @@ public class FaceWord {
         return WordType.VERTEX;
     }
 
-    public void checkIndices(int verticesSize, int textureVerticesSize, int normalsSize,
-                             int lineIndex, int wordIndex) {
-        if (vertexIndex >= verticesSize || vertexIndex < 0) {
-            throw new FaceWordIndexException("vertex", lineIndex, wordIndex);
-        }
-        if (textureVertexIndex != null) {
-            if (textureVertexIndex >= textureVerticesSize || textureVertexIndex < 0) {
-                throw new FaceWordIndexException("texture vertex", lineIndex, wordIndex);
-            }
-        }
-        if (normalIndex != null) {
-            if (normalIndex >= normalsSize || normalIndex < 0) {
-                throw new FaceWordIndexException("normal", lineIndex, wordIndex);
-            }
-        }
-    }
-
     public Integer getVertexIndex() {
         return vertexIndex;
     }
