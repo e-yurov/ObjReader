@@ -31,9 +31,15 @@ public class ObjReader {
 	private final DecimalFormat format = new DecimalFormat("0.#");
 	private Character decimalSeparator = null;
 
+	protected boolean isSoft = true;
+
 	protected ObjReader() {}
 
 	public static Model read(File file) {
+		return read(file, true);
+	}
+
+	public static Model read(File file, boolean isSoft) {
 		String content;
 		try {
 			content = Files.readString(Path.of(file.getCanonicalPath()));
@@ -41,11 +47,16 @@ public class ObjReader {
 			throw new RuntimeException(exception);
 		}
 
-		return read(content);
+		return read(content, isSoft);
 	}
 
 	public static Model read(String content) {
+		return read(content, true);
+	}
+
+	public static Model read(String content, boolean isSoft) {
 		ObjReader objReader = new ObjReader();
+		objReader.isSoft = isSoft;
 		objReader.readModel(content);
 		return objReader.model;
 	}
@@ -189,7 +200,7 @@ public class ObjReader {
 		Set<WordType> types = new HashSet<>();
 
 		for (String word : wordsInLineWithoutToken) {
-			FaceWord faceWord = FaceWord.parse(word, lineIndex);
+			FaceWord faceWord = FaceWord.parse(word, lineIndex, isSoft);
 
 			types.add(faceWord.getWordType());
 			faceWords.add(faceWord);
@@ -238,10 +249,12 @@ public class ObjReader {
 		if (wordCount == vectorSize) {
 			return;
 		}
-
 		if (wordCount < vectorSize) {
 			throw new ArgumentsSizeException(ArgumentsErrorType.FEW, lineIndex);
 		}
-		throw new ArgumentsSizeException(ArgumentsErrorType.MANY, lineIndex);
+
+		if (!isSoft) {
+			throw new ArgumentsSizeException(ArgumentsErrorType.MANY, lineIndex);
+		}
 	}
 }

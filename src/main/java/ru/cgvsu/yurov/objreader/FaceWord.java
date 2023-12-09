@@ -9,7 +9,7 @@ public class FaceWord {
 
     private FaceWord() {}
 
-    public static FaceWord parse(String word, int lineIndex) {
+    public static FaceWord parse(String word, int lineIndex, boolean isSoft) {
         FaceWord faceWord = new FaceWord();
 
         String[] indices = word.split("/");
@@ -45,10 +45,14 @@ public class FaceWord {
             }
         }
 
-        if (indices.length > 3) {
+        if (!isSoft && indices.length > 3) {
             throw new ArgumentsSizeException(ArgumentsErrorType.MANY_IN_WORD, lineIndex);
         }
         return faceWord;
+    }
+
+    public static FaceWord parse(String word, int lineIndex) {
+        return parse(word, lineIndex, true);
     }
 
     public WordType getWordType() {

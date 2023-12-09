@@ -3,7 +3,6 @@ package ru.cgvsu.yurov.objreader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import ru.cgvsu.yurov.objreader.exceptions.ArgumentsSizeException;
-import ru.cgvsu.yurov.objreader.exceptions.FaceWordIndexException;
 import ru.cgvsu.yurov.objreader.exceptions.ParsingException;
 
 public class FaceWordTest {
@@ -121,11 +120,22 @@ public class FaceWordTest {
     @Test
     void testTooManyArguments() {
         try {
-            FaceWord.parse("1/2/3/4", 1);
+            FaceWord.parse("1/2/3/4", 1, false);
             Assertions.fail();
         } catch (ArgumentsSizeException exception) {
             String expectedMessage = "Error parsing OBJ file on line: 1. Too many face word arguments.";
             Assertions.assertEquals(expectedMessage, exception.getMessage());
         }
+    }
+
+    @Test
+    void testTooManyArgumentsSoft() {
+        FaceWord faceWord = FaceWord.parse("1/2/3/4", 1);
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(WordType.VERTEX_TEXTURE_NORMAL, faceWord.getWordType()),
+                () -> Assertions.assertEquals(0, faceWord.getVertexIndex()),
+                () -> Assertions.assertEquals(1, faceWord.getTextureVertexIndex()),
+                () -> Assertions.assertEquals(2, faceWord.getNormalIndex())
+        );
     }
 }

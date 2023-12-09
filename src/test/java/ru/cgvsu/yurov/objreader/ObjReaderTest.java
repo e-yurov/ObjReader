@@ -24,6 +24,7 @@ public class ObjReaderTest {
     @Test
     void testTooManyVector3fArguments() {
         ObjReader objReader = new ObjReader();
+        objReader.isSoft = false;
         try {
             objReader.parseVector3f(new String[]{"3", "2", "1", "0"});
             Assertions.fail();
@@ -31,6 +32,15 @@ public class ObjReaderTest {
             String expectedMessage = "Error parsing OBJ file on line: 0. Too many arguments.";
             Assertions.assertEquals(expectedMessage, exception.getMessage());
         }
+    }
+
+    @Test
+    void testTooManyVector3fArgumentsSoft() {
+        ObjReader objReader = new ObjReader();
+        Vector3f actual = objReader.parseVector3f(new String[]{"3", "2", "1", "0"});
+        Vector3f expected = new Vector3f(3, 2, 1);
+
+        Assertions.assertEquals(expected, actual);
     }
 
     @Test
@@ -57,6 +67,7 @@ public class ObjReaderTest {
     @Test
     void testTooManyVector2fArguments() {
         ObjReader objReader = new ObjReader();
+        objReader.isSoft = false;
         try {
             objReader.parseVector2f(new String[]{"3", "2", "1"});
             Assertions.fail();
@@ -64,6 +75,15 @@ public class ObjReaderTest {
             String expectedMessage = "Error parsing OBJ file on line: 0. Too many arguments.";
             Assertions.assertEquals(expectedMessage, exception.getMessage());
         }
+    }
+
+    @Test
+    void testTooManyVector2fArgumentsSoft() {
+        ObjReader objReader = new ObjReader();
+        Vector2f actual = objReader.parseVector2f(new String[]{"3", "2", "1"});
+        Vector2f expected = new Vector2f(3, 2);
+
+        Assertions.assertEquals(expected, actual);
     }
 
     @Test
