@@ -82,7 +82,11 @@ public class ObjReader {
 				case OBJ_NORMAL_TOKEN -> model.addNormal(parseVector3f(wordsInLineWithoutToken));
 				case OBJ_FACE_TOKEN -> handleFace(wordsInLineWithoutToken);
 				case OBJ_GROUP_TOKEN -> handleGroup(wordsInLineWithoutToken);
-				default -> throw new TokenException(lineIndex);
+				default -> {
+					if (!isSoft) {
+						throw new TokenException(lineIndex);
+					}
+				}
 			}
 		}
 

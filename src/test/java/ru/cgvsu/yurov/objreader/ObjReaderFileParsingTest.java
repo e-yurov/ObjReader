@@ -26,12 +26,17 @@ public class ObjReaderFileParsingTest {
     @Test
     void testInvalidToken() {
         try {
-            Model model = ObjReader.read(new File("src/test/resources/ObjFiles/InvalidToken.obj"));
+            Model model = ObjReader.read(new File("src/test/resources/ObjFiles/InvalidToken.obj"), false);
             Assertions.fail();
         } catch (TokenException exception) {
             String expectedMessage = "Error parsing OBJ file on line: 7. Invalid line beginning.";
             Assertions.assertEquals(expectedMessage, exception.getMessage());
         }
+    }
+
+    @Test
+    void testInvalidTokenSoft() {
+        Model model = ObjReader.read(new File("src/test/resources/ObjFiles/InvalidToken.obj"));
     }
 
     @Test
